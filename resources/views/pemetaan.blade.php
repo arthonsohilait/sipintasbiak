@@ -18,7 +18,7 @@
         <div id="map" class="w-full h-[600px] rounded-2xl shadow-lg z-10"></div>
 
         <!-- Modal -->
-        <div id="projectModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        {{-- <div id="projectModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
             <div class="bg-white rounded-2xl w-full max-w-lg mx-4 shadow-xl relative">
 
                 <!-- Close Button -->
@@ -32,7 +32,9 @@
                 <div class="p-6">
                     <span id="modalSector" class="text-xs font-bold uppercase tracking-wider text-komdigi-blue block mb-1"></span>
                     <h3 id="modalName" class="text-xl font-bold text-slate-900 mb-2"></h3>
-                    <p id="modalAddress" class="text-sm text-slate-600"></p>
+                    <small id="modalAddress" class="text-sm text-slate-600"></small>
+                    <p id="modalDescription" class="text-sm text-black font-medium mt-2"></p>
+
                 </div>
             </div>
         </div>
@@ -74,16 +76,18 @@
                 document.getElementById('modalName').innerText = project.name;
                 document.getElementById('modalAddress').innerText = project.address;
                 document.getElementById('modalSector').innerText = project.sector;
+                document.getElementById('modalDescription').innerText = project.description;
+
             }
 
             function closeModal() {
                 document.getElementById('projectModal').classList.add('hidden');
                 document.getElementById('projectModal').classList.remove('flex');
             }
-            </script>
+            </script> --}}
 
 
-        {{-- <script>
+        <script>
             document.addEventListener('DOMContentLoaded', function() {
                 // Initialize map centered on Biak Numfor (approximate coordinates)
                 var map = L.map('map').setView([-1.1744, 136.0847], 10);
@@ -105,7 +109,8 @@
                                 ${project.image ? `<img src="/storage/${project.image}" class="w-full h-32 object-cover rounded-lg mb-2">` : ''}
                                 <span class="text-xs font-bold text-komdigi-blue uppercase tracking-wider block mb-1">${project.sector}</span>
                                 <h3 class="font-bold text-slate-900 text-sm mb-1">${project.name}</h3>
-                                <p class="text-xs text-slate-600 line-clamp-2 mb-2">${project.address}</p>
+                                <small class="text-xs text-slate-600 line-clamp-2 ">${project.address}</small>
+                                <p class="text-xs text-black line-clamp-2 mt-2 mb-2">${project.description}</p>
                             </div>
                         `;
 
@@ -113,7 +118,7 @@
                     }
                 });
             });
-        </script> --}}
+        </script>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             <div class="p-6 border border-slate-100 rounded-xl bg-white shadow-sm hover:shadow-md transition">

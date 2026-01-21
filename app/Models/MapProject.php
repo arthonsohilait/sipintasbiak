@@ -15,6 +15,10 @@ class MapProject extends Model
         'investment_opportunity',
         'latitude',
         'longitude',
-        'image'
+        'image',
+    ];
+
+    protected $casts = [
+        'image' => 'array',
     ];
 }

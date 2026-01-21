@@ -24,38 +24,51 @@ class MapProjectController extends Controller
      */
     public function create()
     {
-        $sectors = Sector::orderBy('name')->get();
-        return view('map_projects.create', compact('sectors'));
+        // $sectors = Sector::orderBy('name')->get();
+        // return view('map_projects.create', compact('sectors'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+
+     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required',
+            'sector' => 'required',
             'address' => 'required',
             'description' => 'required',
-            'sector' => 'required',
             'condition' => 'nullable',
             'investment_opportunity' => 'nullable',
             'latitude' => 'required',
             'longitude' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image.*' => 'image|max:2048',
         ]);
 
-        $data = $request->all();
+        $images = [];
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('map_projects', 'public');
-            $data['image'] = $imagePath;
+            foreach ($request->file('image') as $file) {
+                $images[] = $file->store('map-projects', 'public');
+            }
         }
 
-        MapProject::create($data);
+        MapProject::create([
+            'name' => $request->name,
+            'sector' => $request->sector,
+            'address' => $request->address,
+            'description' => $request->description,
+            'condition' => $request->condition,
+            'investment_opportunity' => $request->investment_opportunity,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'image' => $images,
+        ]);
 
-        return redirect()->route('map-projects.index')->with('success', 'Data pemetaan berhasil ditambahkan');
+        return redirect()->back()->with('success', 'Data berhasil disimpan');
     }
+
 
     /**
      * Display the specified resource.
@@ -77,34 +90,63 @@ class MapProjectController extends Controller
     /**
      * Update the specified resource in storage.
      */
+
     public function update(Request $request, MapProject $mapProject)
     {
-        $request->validate([
-            'name' => 'required',
-            'address' => 'required',
-            'description' => 'required',
-            'sector' => 'required',
-            'condition' => 'nullable',
-            'investment_opportunity' => 'nullable',
-            'latitude' => 'required',
-            'longitude' => 'required',
-            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        $existing = json_decode($request->existing_images, true) ?? [];
 
-        $data = $request->all();
+        $newImages = [];
 
         if ($request->hasFile('image')) {
-            if ($mapProject->image) {
-                Storage::disk('public')->delete($mapProject->image);
+            foreach ($request->file('image') as $file) {
+                $newImages[] = $file->store('projects', 'public');
             }
-            $imagePath = $request->file('image')->store('map_projects', 'public');
-            $data['image'] = $imagePath;
         }
 
-        $mapProject->update($data);
+        $mapProject->update([
+            'name' => $request->name,
+            'sector' => $request->sector,
+            'address' => $request->address,
+            'description' => $request->description,
+            'condition' => $request->condition,
+            'investment_opportunity' => $request->investment_opportunity,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'image' => array_merge($existing, $newImages),
+        ]);
 
-        return redirect()->route('map-projects.index')->with('success', 'Data pemetaan berhasil diperbarui');
+        return back()->with('success', 'Data berhasil diperbarui');
     }
+
+
+    // public function update(Request $request, MapProject $mapProject)
+    // {
+    //     $request->validate([
+    //         'name' => 'required',
+    //         'address' => 'required',
+    //         'description' => 'required',
+    //         'sector' => 'required',
+    //         'condition' => 'nullable',
+    //         'investment_opportunity' => 'nullable',
+    //         'latitude' => 'required',
+    //         'longitude' => 'required',
+    //         'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+    //     ]);
+
+    //     $data = $request->all();
+
+    //     if ($request->hasFile('image')) {
+    //         if ($mapProject->image) {
+    //             Storage::disk('public')->delete($mapProject->image);
+    //         }
+    //         $imagePath = $request->file('image')->store('map_projects', 'public');
+    //         $data['image'] = $imagePath;
+    //     }
+
+    //     $mapProject->update($data);
+
+    //     return redirect()->route('map-projects.index')->with('success', 'Data pemetaan berhasil diperbarui');
+    // }
 
     /**
      * Remove the specified resource from storage.

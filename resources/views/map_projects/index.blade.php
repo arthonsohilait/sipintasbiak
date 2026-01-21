@@ -55,12 +55,26 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="relative h-14 w-20 flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                                        @if($item->image)
+                                        {{-- @if($item->image)
                                         <img class="h-full w-full rounded-xl object-cover shadow-sm bg-slate-100 border border-slate-200" src="{{ asset('storage/' . $item->image) }}" alt="">
                                         @else
                                         <div class="h-full w-full rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
                                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
                                         </div>
+                                        @endif --}}
+                                        @if($item->image && count($item->image))
+                                            <img
+                                                class="h-full w-full rounded-xl object-cover shadow-sm bg-slate-100 border border-slate-200"
+                                                src="{{ asset('storage/' . $item->image[0]) }}"
+                                                alt=""
+                                            >
+                                        @else
+                                            <div class="h-full w-full rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                </svg>
+                                            </div>
                                         @endif
                                     </div>
                                     <div class="ml-4">
@@ -144,21 +158,165 @@
                         <button @click="closeModal" class="text-slate-400 hover:text-slate-600">✕</button>
                     </div>
 
+
+                    {{-- <div
+                        x-data="{
+                            previews: [],
+                            existingImages: [],
+                            isDragging: false,
+
+
+                            loadExisting(images) {
+                                this.existingImages = images ?? []
+                            },
+
+                            handleFiles(files) {
+                                Array.from(files).forEach(file => {
+                                    if (!file.type.startsWith('image/')) return
+
+                                    const reader = new FileReader()
+                                    reader.onload = e => {
+                                        this.previews.push({
+                                            url: e.target.result,
+                                            file: file
+                                        })
+                                        this.syncInput() // ⬅️ PENTING
+                                    }
+                                    reader.readAsDataURL(file)
+                                })
+                            },
+
+
+
+                            syncInput() {
+                                const dt = new DataTransfer()
+                                this.previews.forEach(item => dt.items.add(item.file))
+                                this.$refs.imageInput.files = dt.files
+                            },
+
+
+
+                            previewImages(event) {
+                                this.previews = []
+                                this.handleFiles(event.target.files)
+                            },
+
+
+                            removeImage(index) {
+                                this.previews.splice(index, 1)
+                                this.syncInput()
+                            },
+
+
+
+                            resetForm() {
+                                this.previews = []
+                                if (this.$refs.imageInput) {
+                                    this.$refs.imageInput.value = ''
+                                }
+                            }
+                        }"
+                    > --}}
+
+                    <div
+                        x-data="{
+                            previews: [],          // gambar BARU
+                            existingImages: [],    // gambar LAMA (dari DB)
+                            isDragging: false,
+
+                            /* =========================
+                            LOAD GAMBAR LAMA (EDIT)
+                            ========================== */
+                            loadExisting(images) {
+                                this.existingImages = Array.isArray(images) ? images : []
+                            },
+
+                            /* =========================
+                            HANDLE FILE BARU
+                            ========================== */
+                            handleFiles(files) {
+                                Array.from(files).forEach(file => {
+                                    if (!file.type.startsWith('image/')) return
+
+                                    const reader = new FileReader()
+                                    reader.onload = e => {
+                                        this.previews.push({
+                                            url: e.target.result,
+                                            file: file
+                                        })
+                                        this.syncInput()
+                                    }
+                                    reader.readAsDataURL(file)
+                                })
+                            },
+
+                            /* =========================
+                            SYNC KE INPUT FILE
+                            ========================== */
+                            syncInput() {
+                                const dt = new DataTransfer()
+                                this.previews.forEach(item => dt.items.add(item.file))
+                                this.$refs.imageInput.files = dt.files
+                            },
+
+                            /* =========================
+                            PREVIEW FILE BARU
+                            ========================== */
+                            previewImages(event) {
+                                this.previews = []
+                                this.handleFiles(event.target.files)
+                            },
+
+                            /* =========================
+                            HAPUS GAMBAR BARU
+                            ========================== */
+                            removeNew(index) {
+                                this.previews.splice(index, 1)
+                                this.syncInput()
+                            },
+
+                            /* =========================
+                            HAPUS GAMBAR LAMA
+                            ========================== */
+                            removeExisting(index) {
+                                this.existingImages.splice(index, 1)
+                            },
+
+                            /* =========================
+                            RESET FORM
+                            ========================== */
+                            resetForm() {
+                                this.previews = []
+                                this.existingImages = []
+                                if (this.$refs.imageInput) {
+                                    this.$refs.imageInput.value = ''
+                                }
+                            }
+                        }"
+                    >
+
+
+
                     <!-- FORM -->
                     <form
+                    x-data="imageUploader({
+                        existing: mode === 'edit' ? @json($project->images ?? []) : []
+                    })"
                     :action="mode === 'create'
                         ? '{{ route('map-projects.store') }}'
                         : `/map-projects/${form.id}`"
                     method="POST"
                     enctype="multipart/form-data"
                     class="p-6 space-y-4"
-                >
+                    >
                     @csrf
 
                     <!-- PUT hanya saat edit -->
                     <template x-if="mode === 'edit'">
                         <input type="hidden" name="_method" value="PUT">
                     </template>
+
+
 
                     <!-- NAME -->
                     <div>
@@ -220,11 +378,131 @@
                     </div>
 
                     <!-- IMAGE -->
-                    <input type="file" name="image" accept="image/*">
+                    {{-- <div >
+
+                            <label class="font-bold text-sm">Gambar Dokumentasi </label>
+                            <input type="file" name="image" accept="image/*" class="w-full rounded-xl border px-4 py-3">
+
+                    </div> --}}
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                            Gambar Dokumentasi
+                        </label>
+
+                        <!-- ✅ INPUT HIDDEN DI SINI -->
+                        <input
+                        type="hidden"
+                        name="existing_images"
+                        :value="JSON.stringify(existingImages)"
+                        >
+
+                        <div
+                            class="mt-1 flex justify-center px-6 pt-5 pb-6
+                                border-2 border-dashed rounded-2xl transition-colors"
+                            :class="isDragging
+                                ? 'border-komdigi-blue bg-komdigi-blue/5'
+                                : 'border-slate-300'"
+                            @dragover.prevent="isDragging = true"
+                            @dragleave.prevent="isDragging = false"
+                            @drop.prevent="
+                                isDragging = false
+                                handleFiles($event.dataTransfer.files)
+                            "
+                        >
+
+                            <div class="space-y-2 text-center w-full">
+                                <svg class="mx-auto h-12 w-12 text-slate-400 group-hover:text-komdigi-blue transition-colors"
+                                    stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+
+                                <div class="flex justify-center text-sm text-slate-600">
+                                    <label for="image-upload"
+                                        class="relative cursor-pointer bg-white rounded-md font-bold text-komdigi-blue hover:text-blue-700">
+                                        <span>Klik untuk unggah</span>
+
+
+                                        <input
+                                            id="image-upload"
+                                            x-ref="imageInput"
+                                            name="image[]"
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            class="sr-only"
+                                            @change="previewImages($event)"
+                                        >
+
+
+                                    </label>
+                                    <p class="pl-1">atau tarik gambar ke sini</p>
+                                </div>
+
+                                <p class="text-xs text-slate-500">
+                                    PNG, JPG, GIF (maks. 2MB / gambar)
+                                </p>
+
+                                <!-- PREVIEW GAMBAR LAMA (EDIT MODE) -->
+                                <div
+                                x-show="existingImages.length"
+                                class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"
+                                >
+                                <template x-for="(img, index) in existingImages" :key="'old-'+index">
+                                    <div class="relative group">
+                                        <img
+                                            :src="`/storage/${img}`"
+                                            class="w-full h-32 object-cover rounded-xl border"
+                                        >
+
+                                        <button
+                                            type="button"
+                                            @click="removeExisting(index)"
+                                            class="absolute top-2 right-2 bg-rose-500 text-white
+                                                w-6 h-6 rounded-full text-xs font-bold
+                                                opacity-0 group-hover:opacity-100 transition"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                </template>
+                                </div>
+
+                                <!-- PREVIEW -->
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                                    <template x-for="(item, index) in previews" :key="index">
+                                        <div class="relative group">
+                                            <img
+                                                :src="item.url"
+                                                class="w-full h-32 object-cover rounded-xl border"
+                                            >
+
+                                            <!-- BUTTON HAPUS -->
+                                            <button
+                                                type="button"
+                                                @click="removeImage(index)"
+                                                class="absolute top-2 right-2 bg-rose-500 text-white
+                                                       w-6 h-6 rounded-full text-xs font-bold
+                                                       opacity-0 group-hover:opacity-100 transition"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        @error('image.*')
+                            <p class="text-rose-500 text-xs mt-2">{{ $message }}</p>
+                        @enderror
+                    </div>
+
 
                     <!-- ACTION -->
                     <div class="flex justify-end gap-3 pt-4">
-                        <button type="button" @click="closeModal"
+                        <button type="button" @click="resetForm(); closeModal()"
                             class="px-6 py-2 border rounded-xl">Batal</button>
 
                         <button type="submit"
@@ -236,11 +514,50 @@
 
                 </div>
                 </div>
+                </div>
 
 
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('imageUploader', (config = {}) => ({
+                isDragging: false,
+                previews: [],
+                existingImages: config.existing ?? [],
+
+                previewImages(event) {
+                    this.handleFiles(event.target.files)
+                },
+
+                handleFiles(files) {
+                    [...files].forEach(file => {
+                        if (!file.type.startsWith('image/')) return
+
+                        const reader = new FileReader()
+                        reader.onload = e => {
+                            this.previews.push({
+                                file,
+                                url: e.target.result
+                            })
+                        }
+                        reader.readAsDataURL(file)
+                    })
+                },
+
+                removeImage(index) {
+                    this.previews.splice(index, 1)
+                    this.$refs.imageInput.value = ''
+                },
+
+                removeExisting(index) {
+                    this.existingImages.splice(index, 1)
+                }
+            }))
+        })
+        </script>
 
 
 </x-dashboard-layout>

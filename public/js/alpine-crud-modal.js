@@ -11,14 +11,26 @@ document.addEventListener('alpine:init', () => {
             this.showModal = true
         },
 
+        // openEdit(item) {
+        //     this.mode = 'edit'
+        //     this.form = {
+        //         ...structuredClone(defaultForm),
+        //         ...item
+        //     }
+        //     this.showModal = true
+        // },
+
         openEdit(item) {
             this.mode = 'edit'
-            this.form = {
-                ...structuredClone(defaultForm),
-                ...item
-            }
+            this.form = item
             this.showModal = true
+
+            // ⬇️ INI KUNCI
+            this.$nextTick(() => {
+                this.$root.__x.$data.loadExisting(item.image)
+            })
         },
+
 
         closeModal() {
             this.showModal = false
